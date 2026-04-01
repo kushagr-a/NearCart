@@ -10,25 +10,34 @@ userRoutes.route("/register").post()
 //login user
 userRoutes.route("/login").post()
 
+// forgot password user
+userRoutes.route("/forgotPassword").post()
+
+//--------------------- Protected Routes from here all goes into protected routes
+
 // logout user
 userRoutes.route("/logout").post()
 
 // logout from all devices user
 userRoutes.route("/logoutAll").post()
 
-// forgot password user
-userRoutes.route("/forgotPassword").post()
-
 // reset password user
 userRoutes.route("/resetPassword").post()
 
+// change password user
+userRoutes.route("/change-password").post() // For logged-in users
+
 // Viewing own profile user
-userRoutes.route("/viewProfile").get()
+userRoutes.route("/me").get()
+
+// update user profile
+userRoutes.route("/updateProfile").post()
+
+// upload user profile picture
+userRoutes.route("/uploadProfilePicture").post()
 
 // delete own account user
 userRoutes.route("/deleteAccount").post()
 
-// upload user profile picture
-userRoutes.route("/uploadProfilePicture").post()
 
 export default userRoutes;
