@@ -218,6 +218,49 @@ export const logout = async (req: Request, res: Response) => {
 };
 
 export const logoutAllDevice = async (req: Request, res: Response) => {
+    try {
+        // Ensure user is authenticated (assuming middleware attached user to req)
+        if (!(req as any).user || !(req as any).user._id) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        }
+
+        const userId = (req as any).user._id;
+
+        const result = await User.findByIdAndUpdate(
+            userId,
+            { $inc: { tokenVersion: 1 } }, // Increments tokenVersion, invalidating old tokens if middleware checks it
+            { new: true }
+        );
+
+        if (!result) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        // Clear the current cookie on this device
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Successfully logged out from all devices. Please login again.",
+        });
+
+    } catch (error: any) {
+        logger.error("Logout All Devices Error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
 };
 
 export const forgotPassword = async (req: Request, res: Response) => {

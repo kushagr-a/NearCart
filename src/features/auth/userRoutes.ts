@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { login, logout, registerUser } from "./userController";
+import { isAuthenticated } from "./verifyAuth";
 
 const userRoutes = Router();
 
@@ -17,7 +18,7 @@ userRoutes.route("/login").post(login)
 // //--------------------- Protected Routes from here all goes into protected routes
 
 // // logout user
-userRoutes.route("/logout").post(logout)
+userRoutes.route("/logout").post(isAuthenticated,logout)
 
 // // logout from all devices user
 // userRoutes.route("/logoutAll").post()
