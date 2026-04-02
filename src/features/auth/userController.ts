@@ -264,12 +264,112 @@ export const logoutAllDevice = async (req: Request, res: Response) => {
 };
 
 export const forgotPassword = async (req: Request, res: Response) => {
+    try {
+        const { identifier, newPassword } = req.body;
+
+        if (!identifier || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Identifier and new password are required",
+            });
+        }
+
+        const normalizedIdentifier = identifier.toLowerCase().trim();
+        const isEmail = normalizedIdentifier.includes("@");
+
+        const query = isEmail
+            ? { email: normalizedIdentifier }
+            : { username: normalizedIdentifier };
+
+        const user = await User.findOne(query).select("+password");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        const hashedPassword = await argon2.hash(newPassword);
+
+        const updatedUser = await User.findOneAndUpdate(
+            query,
+            { password: hashedPassword },
+            { new: true }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Password updated successfully",
+            data: updatedUser,
+        });
+
+    } catch (error: any) {
+        logger.error("Forgot Password Error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
 };
 
-export const resetPassword = async (req: Request, res: Response) => {
-};
+// export const resetPassword = async (req: Request, res: Response) => {
+// };
 
 export const changePassword = async (req: Request, res: Response) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Old and new password are required",
+            });
+        }
+
+        const user = await User.findById((req as any).user._id).select("+password");
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        const isMatch = await argon2.verify(user.password, oldPassword);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid credentials",
+            });
+        }
+
+        const isSamePassword = await argon2.verify(user.password, newPassword);
+        if (isSamePassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be different",
+            });
+        }
+
+        const hashedPassword = await argon2.hash(newPassword);
+
+        const updatedUser = await User.findOneAndUpdate(
+            { _id: user._id },
+            { password: hashedPassword },
+            { new: true }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully",
+            data: updatedUser,
+        });
+    } catch (error: any) {
+        logger.error("Change Password Error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
 };
 
 export const me = async (req: Request, res: Response) => {

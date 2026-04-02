@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, logout, registerUser } from "./userController";
+import { changePassword, forgotPassword, login, logout, logoutAllDevice, registerUser } from "./userController";
 import { isAuthenticated } from "./verifyAuth";
 
 const userRoutes = Router();
@@ -12,22 +12,22 @@ userRoutes.route("/register").post(registerUser)
 //login user
 userRoutes.route("/login").post(login)
 
-// // forgot password user
-// userRoutes.route("/forgotPassword").post()
+// forgot password user
+userRoutes.route("/forgotPassword").post(forgotPassword)
 
 // //--------------------- Protected Routes from here all goes into protected routes
 
 // // logout user
-userRoutes.route("/logout").post(isAuthenticated,logout)
+userRoutes.route("/logout").post(isAuthenticated, logout)
 
 // // logout from all devices user
-// userRoutes.route("/logoutAll").post()
+userRoutes.route("/logoutAll").post(isAuthenticated, logoutAllDevice)
 
 // // reset password user
 // userRoutes.route("/resetPassword").post()
 
-// // change password user
-// userRoutes.route("/changePassword").post() // For logged-in users
+// change password user
+userRoutes.route("/changePassword").post(changePassword) // For logged-in users
 
 // // Viewing own profile user
 // userRoutes.route("/me").get()
