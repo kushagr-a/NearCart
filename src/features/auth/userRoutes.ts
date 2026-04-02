@@ -25,13 +25,13 @@ userRoutes.route("/logoutAll").post()
 userRoutes.route("/resetPassword").post()
 
 // change password user
-userRoutes.route("/change-password").post() // For logged-in users
+userRoutes.route("/changePassword").post() // For logged-in users
 
 // Viewing own profile user
 userRoutes.route("/me").get()
 
 // update user profile
-userRoutes.route("/updateProfile").post()
+userRoutes.route("/me").post()
 
 // upload user profile picture
 userRoutes.route("/uploadProfilePicture").post()
