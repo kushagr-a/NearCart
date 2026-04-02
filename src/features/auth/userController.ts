@@ -110,9 +110,111 @@ export const registerUser = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
+    try {
+        const { identifier, password } = req.body;
+
+        // 1. Validation
+        if (!identifier || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Identifier and password are required",
+            });
+        }
+
+        const normalizedIdentifier = identifier.toLowerCase().trim();
+
+        // 2. Detect email vs username
+        const isEmail = normalizedIdentifier.includes("@");
+
+        const query = isEmail
+            ? { email: normalizedIdentifier }
+            : { username: normalizedIdentifier };
+
+        // 3. Find user
+        const user = await User.findOne(query).select("+password");
+
+        //  SECURITY: Don't reveal user existence
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid credentials",
+            });
+        }
+
+        // 4. Verify password
+        const isMatch = await argon2.verify(user.password, password);
+
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid credentials",
+            });
+        }
+
+        // 5. Generate token (add more context)
+        const token = jwt.sign(
+            {
+                _id: user._id,
+                role: user.role,
+            },
+            config.jwt.secret,
+            { expiresIn: config.jwt.expiresIn as any }
+        );
+
+        // 6. Set secure cookie
+        res.cookie("token", token, {
+            maxAge: config.cookie.maxAge as number,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        });
+
+        // 7. Remove password safely
+        // const userObj = user.toObject();
+        // delete userObj.password;
+
+        const { password: _, ...userObj } = user.toObject();
+
+        return res.status(200).json({
+            success: true,
+            message: "Login successful",
+            data: {
+                user: userObj,
+                accessToken: token,
+            },
+        });
+
+    } catch (error: any) {
+        logger.error("Login Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
 };
 
 export const logout = async (req: Request, res: Response) => {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully",
+        });
+
+    } catch (error: any) {
+        logger.error("Logout Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
 };
 
 export const logoutAllDevice = async (req: Request, res: Response) => {

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser } from "./userController";
+import { login, logout, registerUser } from "./userController";
 
 const userRoutes = Router();
 
@@ -9,7 +9,7 @@ const userRoutes = Router();
 userRoutes.route("/register").post(registerUser)
 
 //login user
-// userRoutes.route("/login").post()
+userRoutes.route("/login").post(login)
 
 // // forgot password user
 // userRoutes.route("/forgotPassword").post()
@@ -17,7 +17,7 @@ userRoutes.route("/register").post(registerUser)
 // //--------------------- Protected Routes from here all goes into protected routes
 
 // // logout user
-// userRoutes.route("/logout").post()
+userRoutes.route("/logout").post(logout)
 
 // // logout from all devices user
 // userRoutes.route("/logoutAll").post()
