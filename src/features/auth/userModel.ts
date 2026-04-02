@@ -84,7 +84,7 @@ const userSchema = new Schema<IUser>(
             default: false
         },
     },
-    { timestamps: true }
+    { versionKey: false, timestamps: true }
 );
 
 const buyerSchema = new Schema<IBuyerProfile>(

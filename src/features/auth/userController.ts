@@ -3,73 +3,108 @@ import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import { User } from "./userModel";
 import { config } from "../../db/config";
-
+import logger from "../utils/logger/logger";
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
-        const { email, password, username, role } = req.body
+        const { email, password, username, role } = req.body;
 
+        // 1. Basic validation
         if (!email || !password || !username || !role) {
             return res.status(400).json({
                 success: false,
-                message: "Please provide all required fields"
+                message: "All fields are required",
             });
         }
 
-        const isUserExist = await User.findOne({
+        // normalize
+        const normalizedEmail = email.toLowerCase().trim();
+        const normalizedUsername = username.trim();
+
+        // 2. Check existing user
+        const existingUser = await User.findOne({
             $or: [
-                { email: email },
-                { username: username }
+                { email: normalizedEmail },
+                { username: normalizedUsername }
             ]
-        })
+        }).select("+password");
 
-        if (isUserExist) {
-            return res.status(409).json({
-                success: false,
-                message: "User already exists"
-            });
+        if (existingUser) {
+            //  Email already exists
+            if (existingUser.email === normalizedEmail) {
+                return res.status(409).json({
+                    success: false,
+                    message: `This email is already registered as ${existingUser.role}`,
+                    action: "LOGIN_INSTEAD"
+                });
+            }
+
+            //  Username already taken
+            if (existingUser.username === normalizedUsername) {
+                return res.status(409).json({
+                    success: false,
+                    message: "Username already taken",
+                });
+            }
         }
 
+        // 3. Hash password
         const hashedPassword = await argon2.hash(password);
 
+        // 4. Create user
         const user = await User.create({
-            email: email,
+            email: normalizedEmail,
             password: hashedPassword,
-            username: username,
-            role: role
+            username: normalizedUsername,
+            role,
         });
 
-        // token generation 
+        // 5. Generate token (include role )
         const token = jwt.sign(
-            { _id: user._id },
+            {
+                _id: user._id,
+                role: user.role
+            },
             config.jwt.secret,
-            { expiresIn: config.jwt.expiresIn as any },
-        )
+            { expiresIn: config.jwt.expiresIn as any }
+        );
 
-        // set token in cookie
+        // 6. Cookie setup (secure production ready)
         res.cookie("token", token, {
             maxAge: config.cookie.maxAge as number,
-            httpOnly: config.cookie.httpOnly,
-            secure: config.cookie.secure,
-            sameSite: config.cookie.sameSite as "strict" | "lax" | "none"
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
         });
 
-        user.password = undefined as unknown as string;
+        // 7. Remove password safely
+        // const userResponse = user.toObject();
+        // delete userResponse.password;
+        const { password: _, ...userResponse } = user.toObject();
 
         return res.status(201).json({
             success: true,
             message: "User registered successfully",
-            data: {
-                user,
-                accessToken: token,
-            }
+
+            user: userResponse,
+            accessToken: token,
+
         });
 
     } catch (error: any) {
-        console.error("Error registering user:", error);
-        res.status(500).json({
+        logger.error("Register Error:", error);
+
+        //  Mongo duplicate key error (extra safety)
+        if (error.code === 11000) {
+            return res.status(409).json({
+                success: false,
+                message: "Duplicate field error",
+            });
+        }
+
+        return res.status(500).json({
             success: false,
-            message: "Internal Server Error"
+            message: "Internal Server Error",
         });
     }
 };

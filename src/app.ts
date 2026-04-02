@@ -43,8 +43,8 @@ app.use("/api", apiRoutes);
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
-        message: "Welcome to the backend API and let's build something amazing together!",
-        devlopment: config.env
+        message: "Welcome to the NearCart API.",
+        development: config.env
     })
 })
 
