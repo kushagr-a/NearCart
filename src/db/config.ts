@@ -36,9 +36,19 @@ export const config = {
     // environment configuration
     env: process.env.NODE_ENV || "development",
 
+    // cookie configuration
+    cookie: {
+        secret: process.env.COOKIE_SECRET || "MyCookieSecret",
+        maxAge: 900000,
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+    },
+
     // jwt configuration
     jwt: {
         secret: process.env.JWT_SECRET || "MySecretKey",
+        expiresIn: process.env.JWT_EXPIRES_IN || "3d", // 3 days
     },
 
     // cloudinary configuration
