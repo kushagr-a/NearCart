@@ -15,30 +15,30 @@ userRoutes.route("/login").post(login)
 // forgot password user
 userRoutes.route("/forgotPassword").post(forgotPassword)
 
-// //--------------------- Protected Routes from here all goes into protected routes
+//--------------------- Protected Routes from here all goes into protected routes ---------------------------------------------------------
 
-// // logout user
+// logout user
 userRoutes.route("/logout").post(isAuthenticated, logout)
 
-// // logout from all devices user
+// logout from all devices user
 userRoutes.route("/logoutAll").post(isAuthenticated, logoutAllDevice)
 
 // // reset password user
 // userRoutes.route("/resetPassword").post()
 
 // change password user
-userRoutes.route("/changePassword").post(changePassword) // For logged-in users
+userRoutes.route("/changePassword").post(isAuthenticated, changePassword) // For logged-in users
 
-// // Viewing own profile user
+// Viewing own profile user
 // userRoutes.route("/me").get()
 
-// // update user profile
+// update user profile
 // userRoutes.route("/updateProfile").post()
 
-// // upload user profile picture
+// upload user profile picture
 // userRoutes.route("/uploadProfilePicture").post()
 
-// // delete own account user
+// delete own account user
 // userRoutes.route("/deleteAccount").post()
 
 

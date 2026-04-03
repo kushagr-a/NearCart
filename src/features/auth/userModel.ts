@@ -125,7 +125,6 @@ const buyerSchema = new Schema<IBuyerProfile>(
     },
     { timestamps: true }
 );
-buyerSchema.index({ location: "2dsphere" });
 
 const sellerSchema = new Schema<ISellerProfile>(
     {
@@ -168,7 +167,6 @@ const sellerSchema = new Schema<ISellerProfile>(
 );
 
 // --- MODELS (Named Exports) ---
-
 export const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
 export const BuyerProfile: Model<IBuyerProfile> = mongoose.model<IBuyerProfile>("BuyerProfile", buyerSchema);
 export const SellerProfile: Model<ISellerProfile> = mongoose.model<ISellerProfile>("SellerProfile", sellerSchema);
