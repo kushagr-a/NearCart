@@ -7,20 +7,47 @@ const app_1 = __importDefault(require("./app"));
 const config_1 = require("./db/config");
 const db_1 = require("./db/db");
 const logger_1 = __importDefault(require("./features/utils/logger/logger"));
+const ws_1 = __importDefault(require("ws"));
+// import dns from "node:dns"
 const PORT = config_1.config.port;
 let server;
+let wss;
 const startServer = async () => {
     try {
-        // 1. Start the server
+        // 1.  Start the HTTP server
         server = app_1.default.listen(PORT, () => {
             logger_1.default.info(`Server running at http://localhost:${PORT}`);
             // console.log("Press Ctrl+C to stop");
         });
-        // 2. Database connection should happen AFTER starting the listener
+        // 2. Initialize WebSocket server by attaching it to the HTTP server
+        wss = new ws_1.default.Server({ server });
+        wss.on("connection", (socket, req) => {
+            const ip = req.socket.remoteAddress;
+            logger_1.default.info(`New Websocket  connection established from ${ip}`);
+            socket.on("message", (data) => {
+                const message = data.toString();
+                logger_1.default.info(`Received message: ${message}`);
+                socket.send(`server received: ${message}`);
+            });
+            socket.on("error", (error) => {
+                logger_1.default.error(`Socket error: ${error.message}`);
+            });
+            socket.on("close", () => {
+                logger_1.default.info("WebSocket Client disconnected");
+            });
+        });
+        //  3. Database connection
         await (0, db_1.connectDB)();
         // Graceful shutdown function
         const gracefulShutdown = (signal) => {
             logger_1.default.info(`\n${signal} received. Shutting down gracefully...`);
+            // Close WebSocket server
+            if (wss) {
+                wss.close(() => {
+                    logger_1.default.info("WebSocket server closed");
+                });
+            }
+            // Close HTTP server and DB connections
             if (server) {
                 server.close(async () => {
                     logger_1.default.info("HTTP server closed");

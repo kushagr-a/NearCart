@@ -1,17 +1,23 @@
 import express from "express"
 import cors from "cors"
 import morgan from "morgan"
+import helmet from "helmet"
 import cookieParser from "cookie-parser"
+import dns from "node:dns"
 
 import { config } from "./db/config"
 import logger from "./features/utils/logger/logger"
 import apiRoutes from "./apiRoutes"
+
+// dns configuration
+dns.setServers(["8.8.8.8", "1.1.1.1"])
 
 const app = express()
 
 // Middleware
 app.use(express.json({ limit: "50kb" }))
 app.use(express.urlencoded({ extended: true, limit: "50kb" }))
+app.use(helmet())
 app.use(cookieParser(config.cookie.secret as string))
 
 // CORS configuration
@@ -40,7 +46,7 @@ app.use(
 app.use("/api", apiRoutes);
 
 
-app.get("/", (req, res) => {
+app.get("/health", (req, res) => {
     res.status(200).json({
         success: true,
         message: "Welcome to the NearCart API.",

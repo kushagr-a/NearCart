@@ -24,15 +24,19 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.97",
     "@types/morgan": "^1.9.10",
+    "@types/ws": "^8.18.1",
     "argon2": "^0.44.0",
+    "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.1",
     "mongoose": "^9.3.3",
     "morgan": "^1.10.1",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "ws": "^8.20.0"
   }
 }

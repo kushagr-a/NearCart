@@ -2,26 +2,64 @@ import app from "./app"
 import { config } from "./db/config";
 import { connectDB, disconnectDB } from "./db/db";
 import logger from "./features/utils/logger/logger";
+import ws from "ws"
+
+// import dns from "node:dns"
+
 
 const PORT = config.port
 
 let server: any;
+let wss: ws.Server
 
 const startServer = async () => {
     try {
-        // 1. Start the server
+        // 1.  Start the HTTP server
         server = app.listen(PORT, () => {
             logger.info(`Server running at http://localhost:${PORT}`);
             // console.log("Press Ctrl+C to stop");
         });
 
-        // 2. Database connection should happen AFTER starting the listener
+
+        // 2. Initialize WebSocket server by attaching it to the HTTP server
+        wss = new ws.Server({ server })
+
+        wss.on("connection", (socket, req) => {
+            const ip = req.socket.remoteAddress;
+            logger.info(`New Websocket  connection established from ${ip}`)
+
+            socket.on("message", (data) => {
+                const message = data.toString();
+                logger.info(`Received message: ${message}`);
+
+                socket.send(`server received: ${message}`)
+            });
+
+            socket.on("error", (error) => {
+                logger.error(`Socket error: ${error.message}`);
+            })
+
+            socket.on("close", () => {
+                logger.info("WebSocket Client disconnected");
+            });
+
+        })
+
+        //  3. Database connection
         await connectDB();
 
         // Graceful shutdown function
         const gracefulShutdown = (signal: string) => {
             logger.info(`\n${signal} received. Shutting down gracefully...`);
 
+            // Close WebSocket server
+            if (wss) {
+                wss.close(() => {
+                    logger.info("WebSocket server closed");
+                });
+            }
+
+            // Close HTTP server and DB connections
             if (server) {
                 server.close(async () => {
                     logger.info("HTTP server closed");

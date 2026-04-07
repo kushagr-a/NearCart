@@ -33,39 +33,41 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.User = void 0;
+exports.BuyerProfile = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-// --- SCHEMAS ---
-const userSchema = new mongoose_1.Schema({
-    username: {
-        type: String,
+const buyerSchema = new mongoose_1.Schema({
+    userId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "User",
         required: true,
+        unique: true
     },
-    email: {
+    fname: String,
+    lname: String,
+    address: String,
+    phone: String,
+    state: String,
+    city: String,
+    pincode: String,
+    gender: {
         type: String,
-        required: true,
-        unique: true,
-        index: true,
-        lowercase: true
+        enum: ["MALE", "FEMALE", "OTHER"]
     },
-    password: {
-        type: String,
-        required: true,
-        select: false // 'select: false' hides password by default
+    location: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }, // [lng, lat]
     },
-    image: {
-        type: String,
-        default: null
+    rangeInKm: {
+        type: Number,
+        enum: [2, 5, 10],
+        default: 10
     },
-    role: {
-        type: String,
-        enum: ["SELLER", "BUYER"],
-        required: true
-    },
-    isProfileCompleted: {
-        type: Boolean,
-        default: false
-    },
-}, { versionKey: false, timestamps: true });
-// --- MODELS (Named Exports) ---
-exports.User = mongoose_1.default.model("User", userSchema);
+}, { timestamps: true, versionKey: false });
+exports.BuyerProfile = mongoose_1.default.model("BuyerProfile", buyerSchema);

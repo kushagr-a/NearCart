@@ -310,9 +310,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 };
 
-// export const resetPassword = async (req: Request, res: Response) => {
-// };
-
 export const changePassword = async (req: Request, res: Response) => {
     try {
         const { oldPassword, newPassword } = req.body;

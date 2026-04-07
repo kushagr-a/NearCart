@@ -257,8 +257,6 @@ const forgotPassword = async (req, res) => {
     }
 };
 exports.forgotPassword = forgotPassword;
-// export const resetPassword = async (req: Request, res: Response) => {
-// };
 const changePassword = async (req, res) => {
     try {
         const { oldPassword, newPassword } = req.body;

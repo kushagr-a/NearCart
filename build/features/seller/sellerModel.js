@@ -33,39 +33,45 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.User = void 0;
+exports.SellerProfile = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 // --- SCHEMAS ---
-const userSchema = new mongoose_1.Schema({
-    username: {
-        type: String,
+const sellerSchema = new mongoose_1.Schema({
+    userId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "User",
         required: true,
+        unique: true
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        index: true,
-        lowercase: true
+    fname: String,
+    lname: String,
+    shopName: String,
+    shopAddress: String,
+    phone: String,
+    state: String,
+    city: String,
+    pincode: String,
+    location: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        },
     },
-    password: {
-        type: String,
-        required: true,
-        select: false // 'select: false' hides password by default
+    rangeInKm: {
+        type: Number,
+        enum: [2, 5, 10],
+        default: 10
     },
-    image: {
-        type: String,
-        default: null
-    },
-    role: {
-        type: String,
-        enum: ["SELLER", "BUYER"],
-        required: true
-    },
-    isProfileCompleted: {
+    isVerified: {
         type: Boolean,
         default: false
     },
-}, { versionKey: false, timestamps: true });
-// --- MODELS (Named Exports) ---
-exports.User = mongoose_1.default.model("User", userSchema);
+}, { timestamps: true,
+    versionKey: false
+});
+exports.SellerProfile = mongoose_1.default.model("SellerProfile", sellerSchema);
